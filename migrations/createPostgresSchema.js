@@ -1,7 +1,7 @@
 exports.up = pgm => {
   //1. Users Table
   pgm.sql(`
-    CREATE TABLE "boilerplate"."users" (
+    CREATE TABLE "space_explorer"."users" (
       "id" SERIAL PRIMARY KEY,
       "email" VARCHAR(255) NOT NULL,
       "password" VARCHAR(255) NOT NULL,
