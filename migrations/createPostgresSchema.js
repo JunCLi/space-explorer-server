@@ -10,4 +10,15 @@ exports.up = pgm => {
 			"last_name" VARCHAR(128)
     );
 	`)
+
+	pgm.sql(`
+    CREATE TABLE "space_explorer"."trip_booking" (
+      "id" SERIAL PRIMARY KEY,
+      "user_id" INT NOT NULL,
+      "flight_number" INT NOT NULL,
+      "status" VARCHAR(64) NOT NULL,
+      "date_added" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES space_explorer.users (id)
+    )
+  `)
 };

@@ -6,9 +6,7 @@ const authenticate = (app, req) => {
 
   try {
     const verified_information = jwt.verify(jwtCookie, 'DEV_SUPER_SECRET')
-
     return verified_information.data
-
   } catch(err) {
     throw err
   }
