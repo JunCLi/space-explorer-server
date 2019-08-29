@@ -3,6 +3,7 @@ const { gql } = require('apollo-server-express')
 module.exports = gql`
 	extend type Query {
 		getAllLaunches(input: pagination): [Launch!]
+		getLaunch(id: ID!): Launch
 	}
 
 	input pagination {
@@ -15,8 +16,8 @@ module.exports = gql`
 		rocket_id: ID
 		rocket_name: String
 		rocket_type: String
+		mission_name: String
 		mission_patch: String
 		mission_patch_small: String
-		mission_name: String
 	}
 `
