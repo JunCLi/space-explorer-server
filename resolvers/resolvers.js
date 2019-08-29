@@ -1,4 +1,4 @@
-const userResovlers = require('./userResolvers')
+const userResovlers = require('./usersResolvers')
 
 module.exports = () => {
   return {

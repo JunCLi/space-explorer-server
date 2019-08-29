@@ -13,7 +13,8 @@ module.exports = gql`
 	extend type Mutation {
 		signup(input: SignupObject!): Response!
 		login(input: LoginObject!): Response!
-		# logout(input: )
+		logout: Response!
+		testAuthenticate: Response!
 	}
 
 	input SignupObject {

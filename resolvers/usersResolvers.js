@@ -6,6 +6,14 @@ module.exports = {
 
 		async login(parent, { input }, { dataSources, req, app, postgres }) {
 			return await dataSources.usersDB.login(input)
+		},
+
+		async logout(parent, { input }, { dataSources, req, app, postgres }) {
+			return await dataSources.usersDB.logout(input)
+		},
+
+		async testAuthenticate(parent, { input }, { dataSources, req, app, psotgres }) {
+			return await dataSources.usersDB.testAuthenticate(input)
 		}
 	},
 

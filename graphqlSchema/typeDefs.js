@@ -1,5 +1,5 @@
 const rootSchema = require('./rootSchema')
-const users = require('./users')
+const users = require('./usersSchema')
 
 const schemaArray = [rootSchema, users]
 

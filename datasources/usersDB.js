@@ -1,8 +1,8 @@
 const { DataSource } = require('apollo-datasource')
 
-const authenticate = require('../utils/DSHelperFunctions/authenticate')
+const authenticate = require('../utils/authentication/authenticate')
 const { encryptPassword, comparePassword } = require('../utils/DSHelperFunctions/bcryptFunctions')
-const { createCookie, setCookie } = require('../utils/DSHelperFunctions/setCookie')
+const { createCookie, setCookie, retrieveCookie } = require('../utils/authentication/JWTCookie')
 const { createInsertQuery, createUpdateQuery, createSelectQuery } = require('../utils/DSHelperFunctions/makeQueries')
 
 class PlaceholderDatabase extends DataSource {
@@ -48,24 +48,63 @@ class PlaceholderDatabase extends DataSource {
 			email = email.toLowerCase()
 
 			const getUserColumns = [
-				'password'
+				'id',
+				'password',
 			]
 			const getUserQuery = createSelectQuery(getUserColumns, 'space_explorer.users', 'email', email)
 			const getUserResult = await this.context.postgres.query(getUserQuery)
 			if (!getUserResult.rows.length) throw "A user with this email doesn't exist"
 
-			const dbPassword = getUserResult.rows[0].password
+			const { id: user_id, password: dbPassword } = getUserResult.rows[0]
 			if (!await comparePassword(password, dbPassword)) throw 'Incorrect password'
 
-			const myJWTToken = await createCookie(email, 16)
-			console.log(myJWTToken)
-			setCookie('space_explorer_app', myJWTToken, this.context.req.res)
+			const tokenData = {
+				user_id: user_id,
+				email: email,
+			}
+			const myJWTToken = await createCookie(tokenData, 16)
+			setCookie(myJWTToken, this.context.req.res)
 
 			return { message: 'success' }
 		} catch(err) {
 			throw err
 		}
 	}
+
+	async logout(input) {
+		try {
+			const jwtCookie = retrieveCookie(this.context.req)
+			const { token, exp, iat } = jwtCookie
+			const { user_id } = jwtCookie.data
+
+			const blacklistJWTObject = {
+				user_id: user_id,
+				token: token,
+				tokenIssued: iat,
+				tokenExpiration: exp
+			}
+
+			const blacklistJWTQuery = createInsertQuery(blacklistJWTObject, 'space_explorer.blacklist_jwt')
+			await this.context.postgres.query(blacklistJWTQuery)
+
+			return { message: 'success' }
+		} catch(err) {
+			throw err
+		}
+	}
+
+	async testAuthenticate(input) {
+		try {
+			const tokenData = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
+
+			console.log(tokenData)
+
+			return { message: 'success' }
+		} catch(err) {
+			throw err
+		}
+	}
+
 }
 
 module.exports = PlaceholderDatabase
