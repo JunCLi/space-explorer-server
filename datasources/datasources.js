@@ -1,9 +1,9 @@
 const UsersDB = require('./usersDB')
-const PlaceholderApi = require('./placeholderApi')
+const SpaceXApi = require('./spaceXApi')
 
 const dataSources = () => ({
 	usersDB: new UsersDB(),
-	placeholderApi: new PlaceholderApi(),
+	spaceXApi: new SpaceXApi(),
 })
 
 module.exports = dataSources

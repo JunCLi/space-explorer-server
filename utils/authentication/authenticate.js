@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 
 const { cookieName, cookieSigniture } = require('./configureAuth')
-const { createInsertQuery, createSelectQuery } = require('../DSHelperFunctions/makeQueries')
+const { createSelectQuery } = require('../DSHelperFunctions/makeQueries')
 
 const authenticate = async (req, blacklistDB, postgres) => {
 	try {
@@ -22,7 +22,6 @@ const authenticate = async (req, blacklistDB, postgres) => {
   } catch(err) {
 		throw err
   }
-
 }
 
 module.exports = authenticate
