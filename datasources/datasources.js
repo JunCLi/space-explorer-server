@@ -1,8 +1,8 @@
-const PlaceholderDatabase = require('./placeholderDatabase')
+const UsersDB = require('./usersDB')
 const PlaceholderApi = require('./placeholderApi')
 
 const dataSources = () => ({
-	placeholderDatabase: new PlaceholderDatabase(),
+	usersDB: new UsersDB(),
 	placeholderApi: new PlaceholderApi(),
 })
 
