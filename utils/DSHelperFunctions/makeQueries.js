@@ -12,6 +12,16 @@ module.exports.createSelectQuery = (selectColumns, table, selector, selectorValu
   }
 }
 
+module.exports.createSelectAndQuery = (selectColumns, table, selectors, selectorValues) => {
+	const queryString = selectColumns.join(', ')
+	const whereConditionArray = selectors.map( (selector, index) => `${selector} = ${selectorValues[index]}`)
+	const whereConditionString = whereConditionArray.join(' AND ')
+
+	return {
+		text: `SELECT ${queryString} FROM ${table} WHERE ${whereConditionString}`
+	}
+}
+
 module.exports.createInsertQuery = (inputObject, table, returnValues) => {
 	const camelToSnake = string => (
     string.replace(/([A-Z])/g, letter => (

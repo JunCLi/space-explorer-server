@@ -5,21 +5,36 @@ module.exports = gql`
 	scalar Date
 
 	extend type Query {
-		getAllLaunches(input: Pagination): [Launch!]
-		getLaunch(id: ID!): Launch!
-		getBookedTrips(input: BookedTripPagination): [Launch!]
-		getBookedTrip(user_id: ID!): Launch!
+		getAllLaunches(input: PaginationObject): [Launch!]
+		getLaunch(flight_number: ID!): Launch!
+		getBookedTrips(input: BookedTripPaginationObject): [BookedTrip!]
+		getBookedTrip(input: BookedTripObject!): BookedTrip!
 	}
 
-	input Pagination {
+	input PaginationObject {
 		page: Int
 		perPage: Int
 	}
 
-	input BookedTripPagination {
+	input BookedTripPaginationObject {
 		user_id: ID!
 		page: Int
 		perPage: Int
+	}
+
+	input BookedTripObject {
+		user_id: ID!
+		flight_number: ID!
+	}
+
+	type BookedTrip {
+		bookingDetails: BookingDetails
+		flightDetails: Launch
+	}
+
+	type BookingDetails {
+		status: String
+		date_added: Date
 	}
 
 	type Launch {

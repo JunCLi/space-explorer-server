@@ -38,8 +38,8 @@ class SpaceXApi extends RESTDataSource {
 
 	async getLaunch(input) {
 		try {
-			const { id } = input
-			const launchQueryData = await this.get(`launches/${id}`)
+			const { flight_number } = input
+			const launchQueryData = await this.get(`launches/${flight_number}`)
 			const launchDetails = this.truncateLaunchDetail(launchQueryData)
 
 			return launchDetails

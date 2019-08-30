@@ -1,7 +1,7 @@
 const { DataSource } = require('apollo-datasource')
 
 const authenticate = require('../utils/authentication/authenticate')
-const { createInsertQuery, createUpdateQuery, createSelectQuery } = require('../utils/DSHelperFunctions/makeQueries')
+const { createInsertQuery, createUpdateQuery, createSelectQuery, createSelectAndQuery } = require('../utils/DSHelperFunctions/makeQueries')
 
 class TripsDB extends DataSource {
 	constructor() {
@@ -49,7 +49,9 @@ class TripsDB extends DataSource {
 				: { page: 1, perPage: 10}
 			
 			const getBookedTripsColumns = [
-				'flight_number'
+				'flight_number',
+				'status',
+				'date_added',
 			]
 			const getBookedTripsQuery = createSelectQuery(getBookedTripsColumns, 'space_explorer.booked_trips', 'user_id', user_id)
 			const getBookedTripsResult = await this.context.postgres.query(getBookedTripsQuery)
@@ -59,6 +61,26 @@ class TripsDB extends DataSource {
 			if (!paginatedBookedTrips.length) throw 'no booked flights in range'
 
 			return paginatedBookedTrips
+		} catch(err) {
+			throw err
+		}
+	}
+
+	async getBookedTrip(input) {
+		try {
+			const { user_id, flight_number } = input
+			const getBookedTripColumn = [
+				'flight_number',
+				'status',
+				'date_added',
+			]
+
+			const getBookedTripQuery = createSelectAndQuery(getBookedTripColumn, 'space_explorer.booked_trips', ['user_id', 'flight_number'], [user_id, flight_number])
+			const getBookedTripResult = await this.context.postgres.query(getBookedTripQuery)
+
+			if (!getBookedTripResult.rows.length) throw 'user has not booked this flight'
+
+			return getBookedTripResult.rows[0]
 		} catch(err) {
 			throw err
 		}
