@@ -5,7 +5,7 @@ const { encryptPassword, comparePassword } = require('../utils/DSHelperFunctions
 const { createCookie, setCookie, retrieveCookie } = require('../utils/authentication/JWTCookie')
 const { createInsertQuery, createUpdateQuery, createSelectQuery } = require('../utils/DSHelperFunctions/makeQueries')
 
-class PlaceholderDatabase extends DataSource {
+class UsersDB extends DataSource {
 	constructor() {
 		super()
 	}
@@ -107,4 +107,4 @@ class PlaceholderDatabase extends DataSource {
 
 }
 
-module.exports = PlaceholderDatabase
+module.exports = UsersDB

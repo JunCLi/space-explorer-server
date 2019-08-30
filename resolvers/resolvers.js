@@ -3,7 +3,13 @@ const launchesResolvers = require('./launchesResolvers')
 
 module.exports = () => {
   return {
-		...userResovlers,
-		...launchesResolvers,
+		Mutation: {
+			...userResovlers.Mutation,
+			...launchesResolvers.Mutation,
+		},
+		Query: {
+			...userResovlers.Query,
+			...launchesResolvers.Query,
+		}
   }
 }

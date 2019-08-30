@@ -21,6 +21,8 @@ class SpaceXApi extends RESTDataSource {
 	async getAllLaunches(input) {
 		try {
 			const { page = 1, perPage = 10 } = input
+				? input
+				: { page: 1, perPage: 10}
 	
 			const launchesQueryData = await this.get(`launches?limit=${perPage}&offset=${(page - 1) * perPage}`)
 	
