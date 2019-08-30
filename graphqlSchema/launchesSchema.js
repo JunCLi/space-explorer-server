@@ -1,12 +1,15 @@
 const { gql } = require('apollo-server-express')
 
 module.exports = gql`
+
+	scalar Date
+
 	extend type Query {
-		getAllLaunches(input: pagination): [Launch!]
-		getLaunch(id: ID!): Launch
+		getAllLaunches(input: Pagination): [Launch!]
+		getLaunch(id: ID!): Launch!
 	}
 
-	input pagination {
+	input Pagination {
 		page: Int
 		perPage: Int
 	}
@@ -19,5 +22,14 @@ module.exports = gql`
 		mission_name: String
 		mission_patch: String
 		mission_patch_small: String
+	}
+
+	extend type Mutation {
+		bookTrip(flight_number: ID): BookTripResponse!
+	}
+	
+	type BookTripResponse {
+		message: String!
+		getLaunch(id: ID!): Launch!
 	}
 `
