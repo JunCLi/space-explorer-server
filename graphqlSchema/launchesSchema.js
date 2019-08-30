@@ -7,9 +7,17 @@ module.exports = gql`
 	extend type Query {
 		getAllLaunches(input: Pagination): [Launch!]
 		getLaunch(id: ID!): Launch!
+		getBookedTrips(input: BookedTripPagination): [Launch!]
+		getBookedTrip(user_id: ID!): Launch!
 	}
 
 	input Pagination {
+		page: Int
+		perPage: Int
+	}
+
+	input BookedTripPagination {
+		user_id: ID!
 		page: Int
 		perPage: Int
 	}

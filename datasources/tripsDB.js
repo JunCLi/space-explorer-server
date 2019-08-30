@@ -41,6 +41,28 @@ class TripsDB extends DataSource {
 			throw err
 		}
 	}
+
+	async getBookedTrips(input) {
+		try {
+			const { user_id, page = 1, perPage = 10 } = input
+				? input
+				: { page: 1, perPage: 10}
+			
+			const getBookedTripsColumns = [
+				'flight_number'
+			]
+			const getBookedTripsQuery = createSelectQuery(getBookedTripsColumns, 'space_explorer.booked_trips', 'user_id', user_id)
+			const getBookedTripsResult = await this.context.postgres.query(getBookedTripsQuery)
+			
+			const paginatedBookedTrips = getBookedTripsResult.rows.slice((page - 1) * perPage, perPage * page)
+
+			if (!paginatedBookedTrips.length) throw 'no booked flights in range'
+
+			return paginatedBookedTrips
+		} catch(err) {
+			throw err
+		}
+	}
 }
 
 module.exports = TripsDB
