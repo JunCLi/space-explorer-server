@@ -1,6 +1,3 @@
-const cron = require('node-cron')
-
-
 const postgres = require('../../config/postgres')
 const { createSelectQuery, createDeleteQuery } = require('../DSHelperFunctions/makeQueries')
 
@@ -18,9 +15,9 @@ const getBlacklistedJWT = async () => {
 const checkExpiredJWT = async () => {
 	const blacklistedJWTs = await getBlacklistedJWT()
 
-	return blacklistedJWTs.filter(blacklistedJWT => {
-		return Date.now() < blacklistedJWT.token_expiration && blacklistedJWT
-	})
+	return blacklistedJWTs.filter(blacklistedJWT => (
+		Date.now() < blacklistedJWT.token_expiration && blacklistedJWT
+	))
 }
 
 const cleanExpiredJWT = async () => {
@@ -30,9 +27,8 @@ const cleanExpiredJWT = async () => {
 		const deleteExpiredJWTQuery = createDeleteQuery('space_explorer.blacklist_jwt', 'token_expiration', expiredJWT.token_expiration)
 		await postgres.query(deleteExpiredJWTQuery)
 	})
+	
+	console.log('Cleaned blacklisted JWTs on: ', Date.now())
 }
 
-cron.schedule('* * * * *', () => {
-	console.log('Cleaned blacklisted JWTs on: ', Date.now())
-	cleanExpiredJWT()
-})
+module.exports = cleanExpiredJWT
