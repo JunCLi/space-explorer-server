@@ -73,3 +73,8 @@ module.exports.createUpdateQuery = (inputObject, table, selector, optSelectorVal
   }
 }
 
+module.exports.createDeleteQuery = (table, selector, selectorValue) => {
+	return {
+		text: `DELETE FROM ${table} WHERE ${selector} = ${selectorValue}`
+	}
+}

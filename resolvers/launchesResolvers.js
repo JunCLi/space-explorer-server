@@ -34,6 +34,10 @@ module.exports = {
 	Mutation: {
 		async bookTrip(parent, input, { dataSources, req, app, postgres }) {
 			return await dataSources.tripsDB.bookTrip(input)
+		},
+
+		async cancelTrip(parent, { input }, { dataSources, req, app, postgres }) {
+			return await dataSources.tripsDB.cancelTrip(input)
 		}
 	}
 }

@@ -49,8 +49,14 @@ module.exports = gql`
 
 	extend type Mutation {
 		bookTrip(flight_number: ID): BookTripResponse!
+		cancelTrip(input: CancelTripObject!): Response!
 	}
 	
+	input CancelTripObject {
+		user_id: ID!
+		flight_number: ID!
+	}
+
 	type BookTripResponse {
 		message: String!
 		getLaunch(id: ID!): Launch!
