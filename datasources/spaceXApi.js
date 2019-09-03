@@ -28,9 +28,7 @@ class SpaceXApi extends RESTDataSource {
 	
 			if (launchesQueryData.length === 0) throw 'no launches in range' 
 			
-			const launchesDetails = launchesQueryData.map(launch => (
-				this.truncateLaunchDetail(launch)
-			))
+			const launchesDetails = launchesQueryData.map(launch => this.truncateLaunchDetail(launch))
 	
 			return launchesDetails
 		} catch(err) {
@@ -40,11 +38,24 @@ class SpaceXApi extends RESTDataSource {
 
 	async getLaunch(input) {
 		try {
-			const { id } = input
-			const launchQueryData = await this.get(`launches/${id}`)
+			const { flight_number } = input
+			const launchQueryData = await this.get(`launches/${flight_number}`)
 			const launchDetails = this.truncateLaunchDetail(launchQueryData)
 
 			return launchDetails
+		} catch(err) {
+			throw err
+		}
+	}
+
+	async getLaunches(bookedTrips) {
+		try {
+			const launchesQuery = await Promise.all(bookedTrips.map(async bookedTrip => 
+				this.get(`launches/${bookedTrip.flight_number}`)
+			))
+			const launchesDetails = launchesQuery.map(launch => this.truncateLaunchDetail(launch))
+
+			return launchesDetails
 		} catch(err) {
 			throw err
 		}

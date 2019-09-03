@@ -1,7 +1,7 @@
 const { DataSource } = require('apollo-datasource')
 
 const authenticate = require('../utils/authentication/authenticate')
-const { createInsertQuery, createUpdateQuery, createSelectQuery } = require('../utils/DSHelperFunctions/makeQueries')
+const { createInsertQuery, createUpdateQuery, createSelectQuery, createSelectAndQuery } = require('../utils/DSHelperFunctions/makeQueries')
 
 class TripsDB extends DataSource {
 	constructor() {
@@ -10,6 +10,23 @@ class TripsDB extends DataSource {
 
 	initialize(config) {
 		this.context = config.context
+	}
+
+	async queryBookTrip(input) {
+		try {
+			const { user_id, flight_number } = input
+	
+			const getBookedTripColumn = [
+				'id',
+				'flight_number',
+				'status',
+				'date_added',
+			]
+			const getBookedTripQuery = createSelectAndQuery(getBookedTripColumn, 'space_explorer.booked_trips', ['user_id', 'flight_number'], [user_id, flight_number])
+			return await this.context.postgres.query(getBookedTripQuery)
+		} catch(err) {
+			throw err
+		}
 	}
 
 	async bookTrip(input) {
@@ -41,6 +58,61 @@ class TripsDB extends DataSource {
 			throw err
 		}
 	}
-}
 
+	async getBookedTrips(input) {
+		try {
+			const { user_id, page = 1, perPage = 10 } = input
+				? input
+				: { page: 1, perPage: 10}
+			
+			const getBookedTripsColumns = [
+				'flight_number',
+				'status',
+				'date_added',
+			]
+			const getBookedTripsQuery = createSelectQuery(getBookedTripsColumns, 'space_explorer.booked_trips', 'user_id', user_id)
+			const getBookedTripsResult = await this.context.postgres.query(getBookedTripsQuery)
+			
+			const paginatedBookedTrips = getBookedTripsResult.rows.slice((page - 1) * perPage, perPage * page)
+
+			if (!paginatedBookedTrips.length) throw 'no booked flights in range'
+
+			return paginatedBookedTrips
+		} catch(err) {
+			throw err
+		}
+	}
+
+	async getBookedTrip(input) {
+		try {
+			const getBookedTripResult = await this.queryBookTrip(input)
+
+			if (!getBookedTripResult.rows.length) throw 'user has not booked this flight'
+
+			return getBookedTripResult.rows[0]
+		} catch(err) {
+			throw err
+		}
+	}
+
+	async cancelTrip(input) {
+		try {
+			const getBookedTripResult = await this.queryBookTrip(input)
+			
+			if (!getBookedTripResult.rows.length) throw 'user has not booked this flight'
+			const { id } = getBookedTripResult.rows[0]
+
+			const updateBookTripObject = {
+				status: 'cancelled',
+			}
+			const updateBookTripQuery = createUpdateQuery(updateBookTripObject, 'space_explorer.booked_trips', 'id', id)
+			await this.context.postgres.query(updateBookTripQuery)
+
+			return { message: 'success' }
+		} catch(err) {
+			throw err
+		}
+	}
+}
+ 
 module.exports = TripsDB
