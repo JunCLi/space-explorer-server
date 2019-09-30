@@ -5,9 +5,20 @@ module.exports = gql`
 		id: ID
 	}
 
+	extend type Query {
+		getLoggedUser: User
+	}
+
+	type User {
+		user_id: ID!
+		email: String
+		first_name: String
+		last_name: String
+	}
+
 	extend type Mutation {
 		signup(input: SignupObject!): Response!
-		login(input: LoginObject!): Response!
+		login(input: LoginObject!): LoginResponse!
 		logout: Response!
 		testAuthenticate: Response!
 	}
@@ -26,6 +37,11 @@ module.exports = gql`
 
 	type Response {
 		message: String!
+	}
+
+	type LoginResponse {
+		message: String!
+		token: String
 	}
 
 `

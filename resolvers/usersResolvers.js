@@ -12,12 +12,14 @@ module.exports = {
 			return await dataSources.usersDB.logout(input)
 		},
 
-		async testAuthenticate(parent, { input }, { dataSources, req, app, psotgres }) {
+		async testAuthenticate(parent, { input }, { dataSources, req, app, postgres }) {
 			return await dataSources.usersDB.testAuthenticate(input)
 		}
 	},
 
 	Query: {
-
+		async getLoggedUser(parent, { input }, { dataSources, req, app, postgres }) {
+			return await dataSources.usersDB.getLoggedUser(input)
+		}
 	}
 }
