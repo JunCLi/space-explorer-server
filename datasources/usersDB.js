@@ -59,13 +59,15 @@ class UsersDB extends DataSource {
 			if (!await comparePassword(password, dbPassword)) throw 'Incorrect password'
 
 			const tokenData = {
-				user_id: user_id,
-				email: email,
+				user_id: user_id
 			}
-			const myJWTToken = await createCookie(tokenData, 16)
+			const myJWTToken = await createCookie(tokenData)
 			setCookie(myJWTToken, this.context.req.res)
 
-			return { message: 'success' }
+			return {
+				message: 'success',
+				token: myJWTToken,
+			}
 		} catch(err) {
 			throw err
 		}
@@ -93,13 +95,25 @@ class UsersDB extends DataSource {
 		}
 	}
 
-	async testAuthenticate(input) {
+	async getLoggedUser(input) {
 		try {
 			const tokenData = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
+			const { user_id } = tokenData
 
-			console.log(tokenData)
+			const getUserColumns = [
+				'email',
+				'first_name',
+				'last_name',
+			]
+			const getUserQuery = createSelectQuery(getUserColumns, 'space_explorer.users', 'id', user_id)
+			const getUserResult = await this.context.postgres.query(getUserQuery)
 
-			return { message: 'success' }
+			console.log('getUserResult: ', getUserResult.rows)
+
+			return { 
+				...getUserResult.rows,
+				user_id: user_id,
+			}
 		} catch(err) {
 			throw err
 		}

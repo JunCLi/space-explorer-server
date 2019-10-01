@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken')
 
-const { cookieName, cookieSigniture } = require('./configureAuth')
+const { cookieName, cookieSigniture, cookieExpHours } = require('./configureAuth')
 
-module.exports.createCookie = (data, expHours) => {
-  const exp = Math.floor(Date.now() / 1000 + 60 * 60 * expHours)
+module.exports.createCookie = data => {
+	const exp = Math.floor(Date.now() / 1000 + 60 * 60 * cookieExpHours)
+	// const minutes = 1
+  // const exp = Math.floor(Date.now() / 1000 + 60 * minutes)
   return jwt.sign({
 		data: data,
 		exp: exp
