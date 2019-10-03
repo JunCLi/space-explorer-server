@@ -41,7 +41,9 @@ module.exports = gql`
 
 	type LoginResponse {
 		message: String!
-		token: String
+		token: String!
+		user_id: ID!
+		user: User!
 	}
 
 `

@@ -49,6 +49,9 @@ class UsersDB extends DataSource {
 
 			const getUserColumns = [
 				'id',
+				'email',
+				'first_name',
+				'last_name',
 				'password',
 			]
 			const getUserQuery = createSelectQuery(getUserColumns, 'space_explorer.users', 'email', email)
@@ -66,6 +69,7 @@ class UsersDB extends DataSource {
 
 			return {
 				message: 'success',
+				user_id: user_id,
 				token: myJWTToken,
 			}
 		} catch(err) {
@@ -111,7 +115,29 @@ class UsersDB extends DataSource {
 			console.log('getUserResult: ', getUserResult.rows)
 
 			return { 
-				...getUserResult.rows,
+				...getUserResult.rows[0],
+				user_id: user_id,
+			}
+		} catch(err) {
+			throw err
+		}
+	}
+
+	async getUserFromId(user_id) {
+		try {
+			console.log(user_id)
+			const getUserColumns = [
+				'email',
+				'first_name',
+				'last_name',
+			]
+			const getUserQuery = createSelectQuery(getUserColumns, 'space_explorer.users', 'id', user_id)
+			const getUserResult = await this.context.postgres.query(getUserQuery)
+
+			console.log('getUserResult: ', getUserResult.rows)
+
+			return { 
+				...getUserResult.rows[0],
 				user_id: user_id,
 			}
 		} catch(err) {
