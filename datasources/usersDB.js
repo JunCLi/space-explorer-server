@@ -104,20 +104,7 @@ class UsersDB extends DataSource {
 			const tokenData = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
 			const { user_id } = tokenData
 
-			const getUserColumns = [
-				'email',
-				'first_name',
-				'last_name',
-			]
-			const getUserQuery = createSelectQuery(getUserColumns, 'space_explorer.users', 'id', user_id)
-			const getUserResult = await this.context.postgres.query(getUserQuery)
-
-			console.log('getUserResult: ', getUserResult.rows)
-
-			return { 
-				...getUserResult.rows[0],
-				user_id: user_id,
-			}
+			return await this.getUserFromId(user_id)
 		} catch(err) {
 			throw err
 		}
@@ -125,7 +112,6 @@ class UsersDB extends DataSource {
 
 	async getUserFromId(user_id) {
 		try {
-			console.log(user_id)
 			const getUserColumns = [
 				'email',
 				'first_name',
@@ -133,8 +119,6 @@ class UsersDB extends DataSource {
 			]
 			const getUserQuery = createSelectQuery(getUserColumns, 'space_explorer.users', 'id', user_id)
 			const getUserResult = await this.context.postgres.query(getUserQuery)
-
-			console.log('getUserResult: ', getUserResult.rows)
 
 			return { 
 				...getUserResult.rows[0],

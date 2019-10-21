@@ -20,17 +20,36 @@ class SpaceXApi extends RESTDataSource {
 
 	async getAllLaunches(input) {
 		try {
-			const { page = 1, perPage = 10 } = input
+			const { cursor, first = 10 } = input
 				? input
-				: { page: 1, perPage: 10}
-	
-			const launchesQueryData = await this.get(`launches?limit=${perPage}&offset=${(page - 1) * perPage}`)
-	
-			if (launchesQueryData.length === 0) throw 'no launches in range' 
+				: { first: 10 }
+
+			const launchesQueryData = await this.get('launches?order=desc')
+			let launchesDetails = []
+
+			if (!cursor) {
+				const slicedLaunchesData = launchesQueryData.slice(0, first)
+				launchesDetails = slicedLaunchesData.map(launch => this.truncateLaunchDetail(launch))
+			} else {
+				const startIndex = launchesQueryData.findIndex(launch => launch.flight_number === +cursor - 1)
+				const endIndex = startIndex + first		
+				const slicedLaunchesData = launchesQueryData.slice(startIndex, endIndex)
+				launchesDetails = slicedLaunchesData.map(launch => this.truncateLaunchDetail(launch))
+			}
 			
-			const launchesDetails = launchesQueryData.map(launch => this.truncateLaunchDetail(launch))
-	
-			return launchesDetails
+			const nextCursor = launchesDetails.length
+				? launchesDetails[launchesDetails.length - 1].flight_number
+				: null
+
+			const hasMore = launchesDetails.length
+				? launchesDetails[launchesDetails.length - 1].flight_number !== launchesQueryData[launchesQueryData.length - 1].flight_number
+				: false
+
+			return {
+				nextCursor: nextCursor,
+				hasMore: hasMore,
+				launches: launchesDetails,
+			}			
 		} catch(err) {
 			throw err
 		}

@@ -5,15 +5,15 @@ module.exports = gql`
 	scalar Date
 
 	extend type Query {
-		getAllLaunches(input: PaginationObject): [Launch!]
+		getAllLaunches(input: CursorPaginationObject): LaunchesConnection!
 		getLaunch(flight_number: ID!): Launch!
 		getBookedTrips(input: BookedTripPaginationObject): [BookedTrip!]
 		getBookedTrip(input: BookedTripObject!): BookedTrip!
 	}
 
-	input PaginationObject {
-		page: Int
-		perPage: Int
+	input CursorPaginationObject {
+		cursor: String
+		first: Int
 	}
 
 	input BookedTripPaginationObject {
@@ -35,6 +35,12 @@ module.exports = gql`
 	type BookingDetails {
 		status: String
 		date_added: Date
+	}
+
+	type LaunchesConnection {
+		nextCursor: String!
+		hasMore: Boolean!
+		launches: [Launch!]
 	}
 
 	type Launch {

@@ -1,14 +1,14 @@
 module.exports = {
 	Query: {
-		async getAllLaunches(parent, { input }, { dataSources, req, app, postgres }) {
+		async getAllLaunches(parent, { input }, { dataSources }) {
 			return await dataSources.spaceXApi.getAllLaunches(input)
 		},
 
-		async getLaunch(parent, input, { dataSources, req, app, postgres }) {
+		async getLaunch(parent, input, { dataSources }) {
 			return await dataSources.spaceXApi.getLaunch(input)
 		},
 
-		async getBookedTrips(parent, { input }, { dataSources, req, app, postgres }) {
+		async getBookedTrips(parent, { input }, { dataSources }) {
 			const bookedFlights = await dataSources.tripsDB.getBookedTrips(input)
 			const flightsDetails = await dataSources.spaceXApi.getLaunches(bookedFlights)
 
@@ -20,7 +20,7 @@ module.exports = {
 			))
 		},
 
-		async getBookedTrip(parent, { input }, { dataSources, req, app, postgres }) {
+		async getBookedTrip(parent, { input }, { dataSources }) {
 			const bookedFlight = await dataSources.tripsDB.getBookedTrip(input)
 			const flightDetails = await dataSources.spaceXApi.getLaunch(bookedFlight)
 
@@ -32,11 +32,11 @@ module.exports = {
 	},
 
 	Mutation: {
-		async bookTrip(parent, input, { dataSources, req, app, postgres }) {
+		async bookTrip(parent, input, { dataSources }) {
 			return await dataSources.tripsDB.bookTrip(input)
 		},
 
-		async cancelTrip(parent, { input }, { dataSources, req, app, postgres }) {
+		async cancelTrip(parent, { input }, { dataSources }) {
 			return await dataSources.tripsDB.cancelTrip(input)
 		}
 	}
