@@ -7,7 +7,8 @@ module.exports = gql`
 	extend type Query {
 		getAllLaunches(input: CursorPaginationObject): LaunchesConnection!
 		getLaunch(flight_number: ID!): Launch!
-		getBookedTrips(input: BookedTripPaginationObject): [BookedTrip!]
+		getBookedTrips(input: BookedTripPaginationObject): BookedTripConnection!
+		getCursorBookedTrips(input: CursorPaginationObject): CursorBookedTripConnection!
 		getBookedTrip(input: BookedTripObject!): BookedTrip!
 	}
 
@@ -17,7 +18,6 @@ module.exports = gql`
 	}
 
 	input BookedTripPaginationObject {
-		user_id: ID!
 		page: Int
 		perPage: Int
 	}
@@ -27,14 +27,24 @@ module.exports = gql`
 		flight_number: ID!
 	}
 
+	type BookedTripConnection {
+		pageInfo: PageInfo
+		bookedTrips: [BookedTrip!]
+	}
+
 	type BookedTrip {
 		bookingDetails: BookingDetails
 		flightDetails: Launch
 	}
 
+	type PageInfo {
+		currentPage: Int!
+		totalPages: Int!
+	}
+
 	type BookingDetails {
-		status: String
-		date_added: Date
+		status: String!
+		date_added: Date!
 	}
 
 	type LaunchesConnection {
@@ -48,9 +58,17 @@ module.exports = gql`
 		rocket_id: ID
 		rocket_name: String
 		rocket_type: String
+		details: String
 		mission_name: String
 		mission_patch: String
 		mission_patch_small: String
+	}
+
+	type CursorBookedTripConnection {
+		nextCursor: String!
+		hasMore: Boolean!
+		totalPages: Int!
+		bookedTrips: [BookedTrip!]
 	}
 
 	extend type Mutation {

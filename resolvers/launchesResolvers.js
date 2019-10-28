@@ -10,14 +10,34 @@ module.exports = {
 
 		async getBookedTrips(parent, { input }, { dataSources }) {
 			const bookedFlights = await dataSources.tripsDB.getBookedTrips(input)
-			const flightsDetails = await dataSources.spaceXApi.getLaunches(bookedFlights)
+			const flightsDetails = await dataSources.spaceXApi.getLaunches(bookedFlights.bookingDetails)
 
-			return bookedFlights.map((flight, index) => (
-				{ 
-					bookingDetails: flight,
-					flightDetails: flightsDetails[index]
-				}
-			))
+			return {
+				pageInfo: bookedFlights.pageInfo,
+				bookedTrips: bookedFlights.bookingDetails.map((flight, index) => (
+					{ 
+						bookingDetails: flight,
+						flightDetails: flightsDetails[index]
+					}
+				))
+			}
+		},
+
+		async getCursorBookedTrips(parent, { input }, { dataSources }) {
+			const bookedFlights = await dataSources.tripsDB.getAllBookedTrips(input)
+			const flightDetails = await dataSources.spaceXApi.getLaunches(bookedFlights.bookingDetails)
+
+			return {
+				nextCursor: bookedFlights.nextCursor,
+				hasMore: bookedFlights.hasMore,
+				totalPages: bookedFlights.totalPages,
+				bookedTrips: bookedFlights.bookingDetails.map((flight, index) => (
+					{
+						bookingDetails: flight,
+						flightDetails: flightDetails[index]
+					}
+				))
+			}
 		},
 
 		async getBookedTrip(parent, { input }, { dataSources }) {

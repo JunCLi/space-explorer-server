@@ -61,9 +61,10 @@ class TripsDB extends DataSource {
 
 	async getBookedTrips(input) {
 		try {
-			const { user_id, page = 1, perPage = 10 } = input
+			const { page = 1, perPage = 10 } = input
 				? input
 				: { page: 1, perPage: 10}
+			const { user_id } = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
 			
 			const getBookedTripsColumns = [
 				'flight_number',
@@ -77,7 +78,67 @@ class TripsDB extends DataSource {
 
 			if (!paginatedBookedTrips.length) throw 'no booked flights in range'
 
-			return paginatedBookedTrips
+			const totalPages = Math.ceil(getBookedTripsResult.rows.length / perPage)
+
+			return {
+				pageInfo: {
+					currentPage: page,
+					totalPages: totalPages,
+				},
+				bookingDetails: paginatedBookedTrips,
+			}
+		} catch(err) {
+			throw err
+		}
+	}
+
+	async getAllBookedTrips(input) {
+		try {
+			const { cursor, first = 10 } = input 
+				? input
+				: { first: 10 }
+			const { user_id } = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
+
+			const getBookedTripsColumns = [
+				'flight_number',
+				'status',
+				'date_added',
+			]
+			const getBookedTripsQuery = createSelectQuery(getBookedTripsColumns, 'space_explorer.booked_trips', 'user_id', user_id)
+			const getBookedTripsResult = await this.context.postgres.query(getBookedTripsQuery)
+			let paginatedBookedTrips = []
+			
+			if (!cursor) {
+				paginatedBookedTrips = getBookedTripsResult.rows.slice(0, first)
+			} else {
+				const startIndex = getBookedTripsResult.rows.findIndex(bookedTrip => bookedTrip.date_added.toString() === cursor) + 1
+				const endIndex = startIndex + first
+				paginatedBookedTrips = getBookedTripsResult.rows.slice(startIndex, endIndex)
+			} 
+
+			console.log('paginated booked trips: ', paginatedBookedTrips)
+			if (!paginatedBookedTrips.length) throw 'no booked flights in range'
+
+			const nextCursor = paginatedBookedTrips.length
+				? paginatedBookedTrips[paginatedBookedTrips.length - 1].date_added.toString()
+				: null
+
+			const hasMore = paginatedBookedTrips.length
+				? paginatedBookedTrips[paginatedBookedTrips.length - 1].date_added.toString() !== getBookedTripsResult.rows[getBookedTripsResult.rows.length - 1].date_added.toString()
+				: false 
+
+			const totalPages = Math.ceil(getBookedTripsResult.rows.length / first)
+
+			console.log('next cursor: ', nextCursor)
+			console.log('has more?: ', hasMore)
+			console.log('total pages: ', totalPages)
+
+			return {
+				nextCursor: nextCursor,
+				hasMore: hasMore,
+				totalPages: totalPages, 
+				bookingDetails: paginatedBookedTrips,
+			}
 		} catch(err) {
 			throw err
 		}
