@@ -24,13 +24,12 @@ module.exports = {
 		},
 
 		async getCursorBookedTrips(parent, { input }, { dataSources }) {
-			const bookedFlights = await dataSources.tripsDB.getAllBookedTrips(input)
+			const bookedFlights = await dataSources.tripsDB.getCursorBookedTrips(input)
 			const flightDetails = await dataSources.spaceXApi.getLaunches(bookedFlights.bookingDetails)
 
 			return {
 				nextCursor: bookedFlights.nextCursor,
 				hasMore: bookedFlights.hasMore,
-				totalPages: bookedFlights.totalPages,
 				bookedTrips: bookedFlights.bookingDetails.map((flight, index) => (
 					{
 						bookingDetails: flight,
@@ -40,12 +39,12 @@ module.exports = {
 			}
 		},
 
-		async getBookedTrip(parent, { input }, { dataSources }) {
-			const bookedFlight = await dataSources.tripsDB.getBookedTrip(input)
-			const flightDetails = await dataSources.spaceXApi.getLaunch(bookedFlight)
+		async getBookedTrip(parent, input, { dataSources }) {
+			const bookingResult = await dataSources.tripsDB.getBookedTrip(input)
+			const flightDetails = await dataSources.spaceXApi.getLaunch(bookingResult)
 
 			return {
-				bookingDetails: bookedFlight,
+				bookingDetails: bookingResult,
 				flightDetails: flightDetails,
 			}
 		}
@@ -61,3 +60,4 @@ module.exports = {
 		}
 	}
 }
+

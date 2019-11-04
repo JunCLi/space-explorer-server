@@ -4,12 +4,18 @@ module.exports = gql`
 
 	scalar Date
 
+	enum BookingStatus {
+		BOOKED
+		NOTBOOKED
+		CANCELLED
+	}
+
 	extend type Query {
 		getAllLaunches(input: CursorPaginationObject): LaunchesConnection!
 		getLaunch(flight_number: ID!): Launch!
 		getBookedTrips(input: BookedTripPaginationObject): BookedTripConnection!
 		getCursorBookedTrips(input: CursorPaginationObject): CursorBookedTripConnection!
-		getBookedTrip(input: BookedTripObject!): BookedTrip!
+		getBookedTrip(flight_number: ID!): BookedTrip!
 	}
 
 	input CursorPaginationObject {
@@ -43,8 +49,8 @@ module.exports = gql`
 	}
 
 	type BookingDetails {
-		status: String!
-		date_added: Date!
+		status: BookingStatus!
+		date_added: Date
 	}
 
 	type LaunchesConnection {
@@ -67,7 +73,6 @@ module.exports = gql`
 	type CursorBookedTripConnection {
 		nextCursor: String!
 		hasMore: Boolean!
-		totalPages: Int!
 		bookedTrips: [BookedTrip!]
 	}
 
