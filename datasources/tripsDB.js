@@ -127,7 +127,7 @@ class TripsDB extends DataSource {
 			const getBookedTripsQuery = createSelectQuery(getBookedTripsColumns, 'space_explorer.booked_trips', 'user_id', user_id)
 			const getBookedTripsResult = await this.context.postgres.query(getBookedTripsQuery)
 			let paginatedBookedTrips = []
-			
+
 			if (!cursor) {
 				paginatedBookedTrips = getBookedTripsResult.rows.slice(0, first)
 			} else {
@@ -135,8 +135,6 @@ class TripsDB extends DataSource {
 				const endIndex = startIndex + first
 				paginatedBookedTrips = getBookedTripsResult.rows.slice(startIndex, endIndex)
 			} 
-
-			if (!paginatedBookedTrips.length) throw 'no booked flights in range'
 
 			const nextCursor = paginatedBookedTrips.length
 				? paginatedBookedTrips[paginatedBookedTrips.length - 1].date_added.toString()

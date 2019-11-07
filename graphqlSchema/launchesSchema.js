@@ -71,7 +71,7 @@ module.exports = gql`
 	}
 
 	type CursorBookedTripConnection {
-		nextCursor: String!
+		nextCursor: String
 		hasMore: Boolean!
 		bookedTrips: [BookedTrip!]
 	}
