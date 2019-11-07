@@ -12,6 +12,20 @@ module.exports.createSelectQuery = (selectColumns, table, selector, selectorValu
   }
 }
 
+module.exports.createOffsetSelectQuery = (selectColumns, table, selector, selectorValue, limit, offset) => {
+	const queryString = selectColumns.join(', ')
+
+  if (selector) {
+    return {
+      text: `SELECT ${queryString} FROM ${table} WHERE ${selector} = '${selectorValue}' LIMIT ${limit} OFFSET ${offset}`
+    }
+  } else {
+    return {
+      text: `SELECT ${queryString} FROM ${table} LIMIT ${limit} OFFSET ${offset}`
+    }
+  }
+}
+
 module.exports.createSelectAndQuery = (selectColumns, table, selectors, selectorValues) => {
 	const queryString = selectColumns.join(', ')
 	const whereConditionArray = selectors.map( (selector, index) => `${selector} = ${selectorValues[index]}`)

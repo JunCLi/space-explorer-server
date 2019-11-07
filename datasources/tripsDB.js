@@ -35,23 +35,43 @@ class TripsDB extends DataSource {
 			const { user_id } = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
 
 			const checkDuplicateColumns = [
+				'id',
 				'user_id',
 				'flight_number',
+				'status',
 			]
 			const checkDuplicateQuery = createSelectQuery(checkDuplicateColumns, 'space_explorer.booked_trips', 'user_id', user_id)
 			const checkDuplicateResult = await this.context.postgres.query(checkDuplicateQuery)
+
 			const duplicateFlight = checkDuplicateResult.rows.filter(flights => {
-				return flights.flight_number.toString() === flight_number.toString()
+				return flights.flight_number.toString() === flight_number.toString() && flights.status
 			})
-			if (duplicateFlight.length) throw 'duplicate flight'
-	
-			const bookTripObject = {
-				user_id: user_id,
-				flight_number: flight_number,
-				status: 'booked'
+
+			let edit = false
+			if (duplicateFlight.length) {
+				if (duplicateFlight[0].status === 'CANCELLED') {
+					edit = true
+				} else {
+					throw 'duplicate flight'
+				}
 			}
-			const bookTripQuery = createInsertQuery(bookTripObject, 'space_explorer.booked_trips')
-			await this.context.postgres.query(bookTripQuery)
+
+			if (edit) {
+				const updateBookTripObject = {
+					status: 'BOOKED',
+					last_modified: 'now()',
+				}
+				const updateBookTripQuery = createUpdateQuery(updateBookTripObject, 'space_explorer.booked_trips', 'id', duplicateFlight[0].id)
+				await this.context.postgres.query(updateBookTripQuery)
+			} else {
+				const bookTripObject = {
+					user_id: user_id,
+					flight_number: flight_number,
+					status: 'BOOKED'
+				}
+				const bookTripQuery = createInsertQuery(bookTripObject, 'space_explorer.booked_trips')
+				await this.context.postgres.query(bookTripQuery)
+			}
 
 			return { message: 'success' }
 		} catch(err) {
@@ -61,9 +81,10 @@ class TripsDB extends DataSource {
 
 	async getBookedTrips(input) {
 		try {
-			const { user_id, page = 1, perPage = 10 } = input
+			const { page = 1, perPage = 10 } = input
 				? input
 				: { page: 1, perPage: 10}
+			const { user_id } = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
 			
 			const getBookedTripsColumns = [
 				'flight_number',
@@ -77,7 +98,59 @@ class TripsDB extends DataSource {
 
 			if (!paginatedBookedTrips.length) throw 'no booked flights in range'
 
-			return paginatedBookedTrips
+			const totalPages = Math.ceil(getBookedTripsResult.rows.length / perPage)
+
+			return {
+				pageInfo: {
+					currentPage: page,
+					totalPages: totalPages,
+				},
+				bookingDetails: paginatedBookedTrips,
+			}
+		} catch(err) {
+			throw err
+		}
+	}
+
+	async getCursorBookedTrips(input) {
+		try {
+			const { cursor, first = 10 } = input 
+				? input
+				: { first: 10 }
+			const { user_id } = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
+
+			const getBookedTripsColumns = [
+				'flight_number',
+				'status',
+				'date_added',
+			]
+			const getBookedTripsQuery = createSelectQuery(getBookedTripsColumns, 'space_explorer.booked_trips', 'user_id', user_id)
+			const getBookedTripsResult = await this.context.postgres.query(getBookedTripsQuery)
+			let paginatedBookedTrips = []
+			
+			if (!cursor) {
+				paginatedBookedTrips = getBookedTripsResult.rows.slice(0, first)
+			} else {
+				const startIndex = getBookedTripsResult.rows.findIndex(bookedTrip => bookedTrip.date_added.toString() === cursor) + 1
+				const endIndex = startIndex + first
+				paginatedBookedTrips = getBookedTripsResult.rows.slice(startIndex, endIndex)
+			} 
+
+			if (!paginatedBookedTrips.length) throw 'no booked flights in range'
+
+			const nextCursor = paginatedBookedTrips.length
+				? paginatedBookedTrips[paginatedBookedTrips.length - 1].date_added.toString()
+				: null
+
+			const hasMore = paginatedBookedTrips.length
+				? paginatedBookedTrips[paginatedBookedTrips.length - 1].date_added.toString() !== getBookedTripsResult.rows[getBookedTripsResult.rows.length - 1].date_added.toString()
+				: false 
+
+			return {
+				nextCursor: nextCursor,
+				hasMore: hasMore,
+				bookingDetails: paginatedBookedTrips.reverse(),
+			}
 		} catch(err) {
 			throw err
 		}
@@ -85,11 +158,19 @@ class TripsDB extends DataSource {
 
 	async getBookedTrip(input) {
 		try {
-			const getBookedTripResult = await this.queryBookTrip(input)
+			const { flight_number } = input
+			const { user_id } = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
+			const queryObject = {
+				user_id: user_id,
+				flight_number: flight_number
+			}
 
-			if (!getBookedTripResult.rows.length) throw 'user has not booked this flight'
+			const getBookedTripResult = await this.queryBookTrip(queryObject)
+			const bookingResult = getBookedTripResult.rows.length
+				? getBookedTripResult.rows[0]
+				: { flight_number: flight_number, status: 'NOTBOOKED'}
 
-			return getBookedTripResult.rows[0]
+			return bookingResult
 		} catch(err) {
 			throw err
 		}
@@ -97,13 +178,21 @@ class TripsDB extends DataSource {
 
 	async cancelTrip(input) {
 		try {
-			const getBookedTripResult = await this.queryBookTrip(input)
+			const { flight_number } = input
+			const { user_id } = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
+			const queryObject = {
+				user_id: user_id,
+				flight_number: flight_number,
+			}
+
+			const getBookedTripResult = await this.queryBookTrip(queryObject)
 			
 			if (!getBookedTripResult.rows.length) throw 'user has not booked this flight'
 			const { id } = getBookedTripResult.rows[0]
 
 			const updateBookTripObject = {
-				status: 'cancelled',
+				status: 'CANCELLED',
+				last_modified: 'now()',
 			}
 			const updateBookTripQuery = createUpdateQuery(updateBookTripObject, 'space_explorer.booked_trips', 'id', id)
 			await this.context.postgres.query(updateBookTripQuery)

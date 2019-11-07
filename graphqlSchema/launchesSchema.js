@@ -4,20 +4,26 @@ module.exports = gql`
 
 	scalar Date
 
-	extend type Query {
-		getAllLaunches(input: PaginationObject): [Launch!]
-		getLaunch(flight_number: ID!): Launch!
-		getBookedTrips(input: BookedTripPaginationObject): [BookedTrip!]
-		getBookedTrip(input: BookedTripObject!): BookedTrip!
+	enum BookingStatus {
+		BOOKED
+		NOTBOOKED
+		CANCELLED
 	}
 
-	input PaginationObject {
-		page: Int
-		perPage: Int
+	extend type Query {
+		getAllLaunches(input: CursorPaginationObject): LaunchesConnection!
+		getLaunch(flight_number: ID!): Launch!
+		getBookedTrips(input: BookedTripPaginationObject): BookedTripConnection!
+		getCursorBookedTrips(input: CursorPaginationObject): CursorBookedTripConnection!
+		getBookedTrip(flight_number: ID!): BookedTrip!
+	}
+
+	input CursorPaginationObject {
+		cursor: String
+		first: Int
 	}
 
 	input BookedTripPaginationObject {
-		user_id: ID!
 		page: Int
 		perPage: Int
 	}
@@ -27,14 +33,30 @@ module.exports = gql`
 		flight_number: ID!
 	}
 
+	type BookedTripConnection {
+		pageInfo: PageInfo
+		bookedTrips: [BookedTrip!]
+	}
+
 	type BookedTrip {
 		bookingDetails: BookingDetails
 		flightDetails: Launch
 	}
 
+	type PageInfo {
+		currentPage: Int!
+		totalPages: Int!
+	}
+
 	type BookingDetails {
-		status: String
+		status: BookingStatus!
 		date_added: Date
+	}
+
+	type LaunchesConnection {
+		nextCursor: String!
+		hasMore: Boolean!
+		launches: [Launch!]
 	}
 
 	type Launch {
@@ -42,19 +64,21 @@ module.exports = gql`
 		rocket_id: ID
 		rocket_name: String
 		rocket_type: String
+		details: String
 		mission_name: String
 		mission_patch: String
 		mission_patch_small: String
 	}
 
+	type CursorBookedTripConnection {
+		nextCursor: String!
+		hasMore: Boolean!
+		bookedTrips: [BookedTrip!]
+	}
+
 	extend type Mutation {
 		bookTrip(flight_number: ID): BookTripResponse!
-		cancelTrip(input: CancelTripObject!): Response!
-	}
-	
-	input CancelTripObject {
-		user_id: ID!
-		flight_number: ID!
+		cancelTrip(flight_number: ID): Response!
 	}
 
 	type BookTripResponse {
