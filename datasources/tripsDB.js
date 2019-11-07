@@ -149,7 +149,7 @@ class TripsDB extends DataSource {
 			return {
 				nextCursor: nextCursor,
 				hasMore: hasMore,
-				bookingDetails: paginatedBookedTrips,
+				bookingDetails: paginatedBookedTrips.reverse(),
 			}
 		} catch(err) {
 			throw err
