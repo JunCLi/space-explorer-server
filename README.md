@@ -1,31 +1,26 @@
-# Server-Graphql-Apollo-BP
-A server boilerplate for using graphql with postgres and apolloclient
+# Space Explorer - Server
 
-## How to use
-### Postgres configurations
-1. In 'configure/development.js', change schema name from 'boilerplate' to desired postgres schema name.
-2. If using different postgres credentials, change host, user, and password from 'localhost', 'postgres', and 'root' to appropriate postgres credentials. 
-3. Update postgres schema tables in 'migrations/createPostgresSchema.js'.
+## Table of Contents
+1. [The Server](#the-server)
+2. [Installation](#installation)
+3. [Technologies used](#technologies-used)
+4. [Purpose and other Features](#purpose-and-other-features)
 
-### Seeding configurations
-1. Import seeds as arrays of objects in 'seeds/configureSeeds.js'.
-2. Inside promise.all, map through array, change 'boilerplate.users' to desired postgres schema and table. ex. 'my_app.items'.
+## The Server
+This is the server in which the space-explorer client will run with. It is built primarily on Node, GraphQL and Apollo-server.
 
-### Datasources
-1. Change or add datasources inside 'datasources/'. Replace 'datasources/placeholderApi.js' and 'datasources/placeholderDatabase' as appropriate.
-2. Add datasources to context inside 'datasources/datasources.js'.
+Launch details and list of launches are obtained from the publically availabvle [spaceX Api.](https://github.com/r-spacex/SpaceX-API) It will let you "book" and "cancel" fake trips by changing the status on an internal postgres database. Of course, everything is fake and just a demonstration piece for the portfolio project.
 
-### Resolvers
-1. Change or add resolvers inside 'resolvers/'.
-2. Add resolvers to context inside of 'resolvers/resolvers.js' using the spread operator.
+## Installation
 
-### Schema
-1. Change or add graphql schemas inside of 'graphqlSchema/'.
-2. Query and Mutation types must be extended.
-3. Add Schema modules to context inside 'graphqlSchema/typeDefs.js' by placing inside the array.
+Instantiate the postgres database with `yarn db:resetandseed` and then start the server with `NODE_ENV=development yarn start:dev`.
 
-### Cookies
-1. In 'utils/DSHelperFunctions/authenticate.js', change 'boilerplate' cookie name to desired cookie name.
-2. Create and set cookies using the functions in 'utils/DSHelperFunctions/setCookie.js'.
-3. The second argument the createCookie is the number of hours you want the cookie to last.
-4. Change cookie secret in 'utils/DSHelperFunctions/authenticate.js' and 'utils/DSHelperFunctions/setCookie.js' as required, they must match.
+If you want the front-end react-native client to run the server with, you can get it [here.](https://github.com/JunCLi/space-explorer-client)
+
+### Main Technologies
+1. [React Native](https://facebook.github.io/react-native/) version 0.60.5
+2. [GraphQL](https://graphql.org/)
+3. [ApolloServer](https://www.apollographql.com/)
+4. [Postgres](https://www.postgresql.org/)
+5. [node-cron](https://www.npmjs.com/package/node-cron)
+
