@@ -35,23 +35,43 @@ class TripsDB extends DataSource {
 			const { user_id } = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
 
 			const checkDuplicateColumns = [
+				'id',
 				'user_id',
 				'flight_number',
+				'status',
 			]
 			const checkDuplicateQuery = createSelectQuery(checkDuplicateColumns, 'space_explorer.booked_trips', 'user_id', user_id)
 			const checkDuplicateResult = await this.context.postgres.query(checkDuplicateQuery)
+
 			const duplicateFlight = checkDuplicateResult.rows.filter(flights => {
-				return flights.flight_number.toString() === flight_number.toString()
+				return flights.flight_number.toString() === flight_number.toString() && flights.status
 			})
-			if (duplicateFlight.length) throw 'duplicate flight'
-	
-			const bookTripObject = {
-				user_id: user_id,
-				flight_number: flight_number,
-				status: 'BOOKED'
+
+			let edit = false
+			if (duplicateFlight.length) {
+				if (duplicateFlight[0].status === 'CANCELLED') {
+					edit = true
+				} else {
+					throw 'duplicate flight'
+				}
 			}
-			const bookTripQuery = createInsertQuery(bookTripObject, 'space_explorer.booked_trips')
-			await this.context.postgres.query(bookTripQuery)
+
+			if (edit) {
+				const updateBookTripObject = {
+					status: 'BOOKED',
+					last_modified: 'now()',
+				}
+				const updateBookTripQuery = createUpdateQuery(updateBookTripObject, 'space_explorer.booked_trips', 'id', duplicateFlight[0].id)
+				await this.context.postgres.query(updateBookTripQuery)
+			} else {
+				const bookTripObject = {
+					user_id: user_id,
+					flight_number: flight_number,
+					status: 'BOOKED'
+				}
+				const bookTripQuery = createInsertQuery(bookTripObject, 'space_explorer.booked_trips')
+				await this.context.postgres.query(bookTripQuery)
+			}
 
 			return { message: 'success' }
 		} catch(err) {
@@ -158,13 +178,21 @@ class TripsDB extends DataSource {
 
 	async cancelTrip(input) {
 		try {
-			const getBookedTripResult = await this.queryBookTrip(input)
+			const { flight_number } = input
+			const { user_id } = await authenticate(this.context.req, 'space_explorer.blacklist_jwt', this.context.postgres)
+			const queryObject = {
+				user_id: user_id,
+				flight_number: flight_number,
+			}
+
+			const getBookedTripResult = await this.queryBookTrip(queryObject)
 			
 			if (!getBookedTripResult.rows.length) throw 'user has not booked this flight'
 			const { id } = getBookedTripResult.rows[0]
 
 			const updateBookTripObject = {
 				status: 'CANCELLED',
+				last_modified: 'now()',
 			}
 			const updateBookTripQuery = createUpdateQuery(updateBookTripObject, 'space_explorer.booked_trips', 'id', id)
 			await this.context.postgres.query(updateBookTripQuery)

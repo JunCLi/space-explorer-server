@@ -17,10 +17,23 @@ exports.up = pgm => {
       "user_id" INT NOT NULL,
       "flight_number" INT NOT NULL,
       "status" VARCHAR(64) NOT NULL,
-      "date_added" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			"date_added" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			"last_modified" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       FOREIGN KEY (user_id) REFERENCES space_explorer.users (id)
     );
 	`)
+
+	// pgm.sql(`
+	// 	CREATE TABLE "space_explorer"."cancelled_trips" (
+	// 		"id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	// 		"user_id" INT NOT NULL,
+	// 		"booked_trip_id" INT NOT NULL,
+	// 		"flight_number" INT NOT NULL,
+	// 		"date_added" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  //     FOREIGN KEY (user_id) REFERENCES space_explorer.users (id),
+	// 		FOREIGN KEY (booked_trip_id) REFERENCES space_explorer.booked_trips(id)
+	// 	)
+	// `)
 	
 	pgm.sql(`
 		CREATE TABLE "space_explorer"."blacklist_jwt" (

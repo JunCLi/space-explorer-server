@@ -55,7 +55,7 @@ module.exports = {
 			return await dataSources.tripsDB.bookTrip(input)
 		},
 
-		async cancelTrip(parent, { input }, { dataSources }) {
+		async cancelTrip(parent, input , { dataSources }) {
 			return await dataSources.tripsDB.cancelTrip(input)
 		}
 	}
